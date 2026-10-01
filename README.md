@@ -40,13 +40,19 @@ En service worker förcachar sidan, ikonerna och typsnitten vid första besöket
 | `scripts/verify-levels.py` | Oberoende kontroll att varje bana har exakt en lösning |
 | `test/hints.test.js` | Följer Tips på alla banor i en headless-webbläsare (kräver playwright) |
 
+## Publicering (GitHub Pages)
+
+`.github/workflows/pages.yml` gör allt vid push till `main`: kontrollerar banorna, bygger ikoner, `index.html` och `sw.js`, kör tipstestet i Chromium och publicerar. Pull requests byggs och testas men publiceras inte. Inbyggda filer i repot behöver alltså inte vara aktuella för att sajten ska bli rätt.
+
+Engångsinställning i repot: Settings → Pages → Source: **GitHub Actions**.
+
 ## Arbetsflöde
 
 ```
 node scripts/generate-levels.js   # valfritt, ger nya banor om fröna ändras
 python3 scripts/verify-levels.py  # kontrollera banorna
 node scripts/build-icons.js       # bara om icons/icon.svg ändrats
-node scripts/build-page.js        # bygg om index.html och sw.js (kör alltid före publicering)
+node scripts/build-page.js        # bygg om index.html och sw.js (görs även i Actions)
 node test/hints.test.js           # testa tipsen
 ```
 
