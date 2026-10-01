@@ -1,8 +1,24 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Queens 100</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<meta name="description" content="Queens-pussel med 100 banor. En dam per rad, kolumn och färgområde.">
+<meta name="theme-color" content="#121414">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Queens">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preload" href="fonts/bricolage-grotesque-latin.woff2" as="font" type="font/woff2" crossorigin>
 <style>
+/* Typsnitten ligger lokalt (latin-delmängd, OFL) så att appen fungerar offline. */
+@font-face { font-family: "Bricolage Grotesque"; font-weight: 500 700; font-display: swap; src: url(fonts/bricolage-grotesque-latin.woff2) format("woff2"); }
+@font-face { font-family: "IBM Plex Mono"; font-weight: 400; font-display: swap; src: url(fonts/ibm-plex-mono-400-latin.woff2) format("woff2"); }
+@font-face { font-family: "IBM Plex Mono"; font-weight: 500; font-display: swap; src: url(fonts/ibm-plex-mono-500-latin.woff2) format("woff2"); }
 /* Layout: ett skärmsspel i en kolumn. Rubrikrad, bräde i fyrkant, statusrad, verktygsfält. Banväljaren fäller ut över brädet. */
 :root {
   color-scheme: dark;
@@ -21,11 +37,12 @@
   --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
 }
-html, body { height: 100%; }
+html, body { height: 100%; margin: 0; }
 body {
-  background: var(--bg); color: var(--fg);
+  box-sizing: border-box; background: var(--bg); color: var(--fg);
   font: 15px/1.4 var(--display);
-  padding-inline: 16px; padding-block: 12px;
+  /* Säkra marginaler för notch och hemindikator när appen körs i helskärm. */
+  padding: max(12px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
   display: flex; flex-direction: column; align-items: center;
   overflow-x: hidden; touch-action: manipulation; user-select: none; -webkit-user-select: none;
 }
@@ -83,6 +100,8 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 .lv button.now { background: var(--gold); color: #1b1a14; font-weight: 500; }
 @media (prefers-reduced-motion: reduce) { .cell.hint::after { animation: none; } }
 </style>
+</head>
+<body>
 
 <div class="app">
   <header>
@@ -391,4 +410,11 @@ setInterval(() => {
 }, 1000);
 
 load(idx);
+
+// Offline-stöd. Service workers kräver http(s), så när filen öppnas direkt från disk hoppas det över.
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
 </script>
+</body>
+</html>
