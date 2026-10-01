@@ -1,0 +1,394 @@
+<title>Queens 100</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Layout: ett skärmsspel i en kolumn. Rubrikrad, bräde i fyrkant, statusrad, verktygsfält. Banväljaren fäller ut över brädet. */
+:root {
+  color-scheme: dark;
+  --bg: #121414;
+  --panel: #1b1e1e;
+  --panel-2: #252929;
+  --fg: #e9ebe6;
+  --muted: #8f9792;
+  --line: #c8ccc4;
+  --ink: #0b0d0d;
+  --gold: #e3b341;
+  --bad: #ef5b50;
+  --good: #7fc28a;
+  --r0: #a5472f; --r1: #9a6e1c; --r2: #6f8128; --r3: #2f7d57; --r4: #237d82;
+  --r5: #2f6ea3; --r6: #6a53a8; --r7: #92489a; --r8: #a43f68;
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+html, body { height: 100%; }
+body {
+  background: var(--bg); color: var(--fg);
+  font: 15px/1.4 var(--display);
+  padding-inline: 16px; padding-block: 12px;
+  display: flex; flex-direction: column; align-items: center;
+  overflow-x: hidden; touch-action: manipulation; user-select: none; -webkit-user-select: none;
+}
+.app { width: min(100%, 560px); flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 14px; }
+header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+h1 { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.01em; line-height: 1.1; }
+h1 small { display: block; font: 400 12px var(--mono); color: var(--muted); letter-spacing: 0.04em; margin-top: 3px; text-transform: uppercase; }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.pill { background: var(--panel-2); border: 0; border-radius: 999px; padding: 9px 16px; font-weight: 500; }
+.pill:hover { background: #2f3434; }
+.timer { font: 500 22px var(--mono); font-variant-numeric: tabular-nums; }
+
+.stage { position: relative; width: 100%; }
+.board { position: relative; width: max-content; margin-inline: 0; line-height: 0; border-radius: 6px; overflow: hidden; }
+.board canvas { display: block; image-rendering: pixelated; }
+.cells { position: absolute; inset: 0; display: grid; padding: var(--lp, 4px); gap: 0; }
+.cell {
+  position: relative; border: 0; padding: 0; margin: 0; display: grid; place-items: center; background: transparent;
+  color: rgba(255,255,255,.6); font: 500 clamp(14px, 5vw, 26px) var(--mono); -webkit-tap-highlight-color: transparent;
+}
+.cell svg { width: 58.9%; height: 58.9%; fill: #f6f3ea; filter: drop-shadow(0 1px 1px rgba(0,0,0,.45)); }
+.cell.conflict svg { fill: #1a0c0c; filter: none; }
+.cell.conflict::after { content: ""; position: absolute; inset: 0; box-shadow: inset 0 0 0 3px #fff; background: repeating-linear-gradient(45deg, rgba(0,0,0,.28) 0 5px, transparent 5px 10px); }
+.cell.why::before { content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: repeating-linear-gradient(180deg, rgba(0,0,0,.36) 0 3px, transparent 3px 7px); }
+.cell svg { position: relative; z-index: 1; }
+.cell.hint::after { content: ""; position: absolute; inset: 0; box-shadow: inset 0 0 0 3px #fff; animation: pulse 1s ease-in-out 3; }
+@keyframes pulse { 50% { opacity: .25; } }
+.board.done .cell svg { fill: var(--gold); filter: drop-shadow(0 1px 1px rgba(0,0,0,.55)); }
+.board.done { pointer-events: none; }
+
+.status { min-height: 52px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.count { font: 400 13px var(--mono); color: var(--muted); letter-spacing: .03em; text-transform: uppercase; }
+.count b { color: var(--fg); font-weight: 500; }
+.msg.bad { color: var(--bad); }
+.msg { color: var(--muted); font-size: 14px; line-height: 1.3; min-width: 0; text-align: right; }
+.explain { background: var(--panel); border-radius: 12px; padding: 12px 14px; font-size: 15px; line-height: 1.45; }
+.explain b { display: block; font: 500 11px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+.win { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; }
+.win strong { font-size: 18px; color: var(--good); }
+.win .go { background: var(--gold); color: #1b1a14; border: 0; border-radius: 999px; padding: 11px 20px; font-weight: 700; }
+
+.bar { display: flex; gap: 8px; margin-top: auto; padding-bottom: 6px; }
+.bar button { flex: 1; background: var(--panel); border: 1px solid #2c3131; border-radius: 12px; padding: 13px 6px; font-size: 14px; }
+.bar button:hover:not(:disabled) { background: var(--panel-2); }
+.bar button:disabled { opacity: .35; cursor: default; }
+
+.picker { position: absolute; inset: 0; background: var(--panel); border-radius: 4px; padding: 14px; overflow-y: auto; z-index: 5; }
+.picker h2 { margin: 0 0 8px; font: 500 12px var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.picker section + section { margin-top: 16px; }
+.lv { display: grid; grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); gap: 6px; }
+.lv button { background: var(--panel-2); border: 1px solid transparent; border-radius: 8px; padding: 8px 0; font: 400 13px var(--mono); font-variant-numeric: tabular-nums; }
+.lv button.solved { color: var(--good); border-color: #2f4a36; }
+.lv button.now { background: var(--gold); color: #1b1a14; font-weight: 500; }
+@media (prefers-reduced-motion: reduce) { .cell.hint::after { animation: none; } }
+</style>
+
+<div class="app">
+  <header>
+    <h1 id="title">Bana 1<small id="sub">6 x 6</small></h1>
+    <div class="timer" id="timer">00:00</div>
+    <button class="pill" id="menuBtn" type="button" aria-expanded="false">Banor</button>
+  </header>
+  <div class="stage" id="stage">
+    <div class="board" id="board" role="grid" aria-label="Spelbräde"></div>
+    <div class="picker" id="picker" hidden></div>
+  </div>
+  <div class="status" id="status"></div>
+  <div class="explain" id="explain" hidden></div>
+  <div class="bar">
+    <button id="undo" type="button">Ångra</button>
+    <button id="redo" type="button">Gör om</button>
+    <button id="hint" type="button">Tips</button>
+    <button id="reset" type="button">Börja om</button>
+  </div>
+</div>
+
+<script>
+const LEVELS = __LEVELS__;
+const CROWN = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8l4.5 4 4.5-7 4.5 7L21 8l-2 10H5L3 8zm2 12h14v2H5z"/></svg>';
+const $ = (id) => document.getElementById(id);
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+};
+let solvedMap = store.get('queens.solved', {});
+let idx = Math.min(Math.max(store.get('queens.cur', 0), 0), LEVELS.length - 1);
+let lv, n, marks, undoSt, redoSt, secs, finished, timerId = null;
+let hint = { cells: new Set(), why: new Set(), kind: '', text: '' };
+function clearHint() { hint = { cells: new Set(), why: new Set(), kind: '', text: '' }; }
+
+const fmt = (s) => String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+
+function conflicts() {
+  const bad = new Set(); const q = [];
+  marks.forEach((m, i) => { if (m === 2) q.push(i); });
+  for (let a = 0; a < q.length; a++) for (let b = a + 1; b < q.length; b++) {
+    const i = q[a], j = q[b], ri = (i / n) | 0, rj = (j / n) | 0, ci = i % n, cj = j % n;
+    if (ri === rj || ci === cj || lv.grid[i] === lv.grid[j] || (Math.abs(ri - rj) <= 1 && Math.abs(ci - cj) <= 1)) { bad.add(i); bad.add(j); }
+  }
+  return bad;
+}
+
+// Brädet ritas på en canvas i hela skärmpixlar, så alla linjer blir exakt lika tjocka oavsett skärmtäthet.
+let geo = null;
+function fit() {
+  const dpr = window.devicePixelRatio || 1;
+  const thinD = Math.max(1, Math.round(dpr));        // linje inne i ett område
+  const thickD = Math.max(3, Math.round(3.5 * dpr));  // gräns mellan två områden
+  const frameD = Math.max(4, Math.round(4.5 * dpr));  // ram runt hela brädet
+  const availD = Math.floor(Math.min($('stage').clientWidth, 560) * dpr);
+  const cellD = Math.max(16, Math.floor((availD - 2 * frameD) / n));
+  const size = n * cellD + 2 * frameD;
+  const cv = $('cv'), css = (d) => Math.ceil((d / dpr) * 64) / 64;
+  cv.width = size; cv.height = size;
+  cv.style.width = css(size) + 'px'; cv.style.height = css(size) + 'px';
+  const bd = $('board');
+  bd.style.setProperty('--lp', css(frameD) + 'px');
+  // Lägg brädet exakt på en hel skärmpixel, annars skalar webbläsaren om canvasen och linjerna blir olika tjocka.
+  bd.style.top = '0px';
+  const topD = cv.getBoundingClientRect().top * dpr;
+  bd.style.top = Math.ceil(((Math.round(topD) - topD) / dpr) * 64) / 64 + 'px';
+
+  const ctx = cv.getContext('2d'), cs = getComputedStyle(document.documentElement);
+  const ink = cs.getPropertyValue('--ink').trim() || '#0b0d0d';
+  ctx.fillStyle = cs.getPropertyValue('--line').trim() || '#c8ccc4'; ctx.fillRect(0, 0, size, size);
+  const at = (k) => frameD + k * cellD;
+  for (let i = 0; i < n * n; i++) {
+    ctx.fillStyle = cs.getPropertyValue('--r' + lv.grid[i]).trim();
+    ctx.fillRect(at(i % n), at((i / n) | 0), cellD, cellD);
+  }
+  const g = lv.grid, wOf = (a, c) => (g[a] !== g[c] ? thickD : thinD);
+  ctx.fillStyle = ink;
+  for (let r = 0; r < n; r++) for (let c = 1; c < n; c++) {          // lodräta linjer
+    const w = wOf(r * n + c - 1, r * n + c);
+    ctx.fillRect(at(c) - (w >> 1), at(r), w, cellD);
+  }
+  for (let r = 1; r < n; r++) for (let c = 0; c < n; c++) {          // vågräta linjer
+    const w = wOf((r - 1) * n + c, r * n + c);
+    ctx.fillRect(at(c), at(r) - (w >> 1), cellD, w);
+  }
+  for (let r = 1; r < n; r++) for (let c = 1; c < n; c++) {          // hörn där linjer möts
+    const m = Math.max(
+      wOf((r - 1) * n + c - 1, r * n + c - 1), wOf((r - 1) * n + c, r * n + c),
+      wOf((r - 1) * n + c - 1, (r - 1) * n + c), wOf(r * n + c - 1, r * n + c));
+    ctx.fillRect(at(c) - (m >> 1), at(r) - (m >> 1), m, m);
+  }
+}
+window.addEventListener('resize', () => { if (lv) fit(); });
+
+function build() {
+  const b = $('board');
+  b.innerHTML = '<canvas id="cv"></canvas><div class="cells" id="cells"></div>';
+  const cells = $('cells');
+  cells.style.gridTemplateColumns = `repeat(${n}, 1fr)`;
+  cells.style.gridTemplateRows = `repeat(${n}, 1fr)`;
+  for (let i = 0; i < n * n; i++) {
+    const el = document.createElement('button');
+    el.type = 'button'; el.className = 'cell'; el.dataset.i = i; el.setAttribute('role', 'gridcell');
+    cells.appendChild(el);
+  }
+  fit();
+}
+
+function paint() {
+  const bad = conflicts();
+  const cells = $('cells').children;
+  for (let i = 0; i < cells.length; i++) {
+    const el = cells[i], m = marks[i];
+    el.innerHTML = m === 2 ? CROWN : (m === 1 ? '&times;' : '');
+    el.classList.toggle('conflict', bad.has(i));
+    el.classList.toggle('hint', hint.cells.has(i));
+    el.classList.toggle('why', hint.why.has(i));
+    el.setAttribute('aria-label', `Rad ${((i / n) | 0) + 1}, kolumn ${(i % n) + 1}, ${['tom', 'kryss', 'dam'][m]}`);
+  }
+  const ex = $('explain');
+  ex.hidden = !hint.text;
+  ex.innerHTML = hint.text ? '<b>Varför</b>' : '';
+  if (hint.text) ex.appendChild(document.createTextNode(hint.text));
+  const placed = marks.filter((m) => m === 2).length;
+  finished = placed === n && bad.size === 0;
+  $('board').classList.toggle('done', finished);
+  const st = $('status');
+  if (finished) {
+    const best = solvedMap[lv.id];
+    if (best == null || secs < best) { solvedMap[lv.id] = secs; store.set('queens.solved', solvedMap); }
+    const last = idx === LEVELS.length - 1;
+    store.set('queens.cur', last ? idx : idx + 1); // nästa gång appen öppnas ligger man på nästa bana
+    st.innerHTML = `<div class="win"><strong>Klarad på ${fmt(secs)}</strong>${last ? '' : '<button class="go" id="next" type="button">Nästa bana</button>'}</div>`;
+    const nx = $('next'); if (nx) nx.onclick = () => load(idx + 1);
+  } else {
+    st.innerHTML = `<span class="count">Damer <b>${placed}</b> av ${n}</span><span class="msg${bad.size ? ' bad' : ''}" id="msg">${bad.size ? 'Två damer krockar.' : 'Tryck: kryss, dam, tom.'}</span>`;
+  }
+  $('undo').disabled = !undoSt.length; $('redo').disabled = !redoSt.length;
+  $('hint').disabled = finished;
+}
+
+function load(i) {
+  idx = i; lv = LEVELS[i]; n = lv.n;
+  marks = new Array(n * n).fill(0); undoSt = []; redoSt = []; secs = 0; clearHint();
+  store.set('queens.cur', i);
+  $('title').firstChild.nodeValue = 'Bana ' + lv.id;
+  $('sub').textContent = `${n} x ${n}` + (solvedMap[lv.id] != null ? ` · bäst ${fmt(solvedMap[lv.id])}` : '');
+  $('timer').textContent = fmt(0);
+  build(); paint(); closePicker();
+}
+
+function setMarks(next) {
+  undoSt.push(marks.slice()); redoSt = []; marks = next; clearHint(); paint();
+}
+
+$('board').addEventListener('click', (e) => {
+  const el = e.target.closest('.cell'); if (!el || finished) return;
+  const i = +el.dataset.i, next = marks.slice();
+  next[i] = (next[i] + 1) % 3;
+  setMarks(next);
+});
+$('undo').onclick = () => { if (!undoSt.length) return; redoSt.push(marks.slice()); marks = undoSt.pop(); clearHint(); paint(); };
+$('redo').onclick = () => { if (!redoSt.length) return; undoSt.push(marks.slice()); marks = redoSt.pop(); clearHint(); paint(); };
+$('reset').onclick = () => { if (marks.some((m) => m)) setMarks(new Array(n * n).fill(0)); secs = 0; $('timer').textContent = fmt(0); };
+const NAMES = ['tegelröda', 'ockra', 'olivgröna', 'gröna', 'turkosa', 'blå', 'lila', 'rosalila', 'hallonröda'];
+const listText = (a) => (a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' och ' + a[a.length - 1]);
+const regPhrase = (gs) => (gs.length === 1 ? `Det ${NAMES[gs[0]]} området` : `De ${listText(gs.map((g) => NAMES[g]))} områdena`);
+const combos = (arr, k) => { const out = []; (function rec(st, cur) { if (cur.length === k) { out.push(cur.slice()); return; } for (let i = st; i < arr.length; i++) { cur.push(arr[i]); rec(i + 1, cur); cur.pop(); } })(0, []); return out; };
+const pc = (x) => { let c = 0; while (x) { x &= x - 1; c++; } return c; };
+
+// Hittar nästa logiska steg från de damer som ligger på brädet: antingen en dam som måste stå på en viss ruta,
+// eller rutor som kan strykas. Returnerar också vilka rutor som är skälet (why).
+function computeHint() {
+  const grid = lv.grid, N = n * n, R = (i) => (i / n) | 0, C = (i) => i % n;
+  const st = { cand: new Uint8Array(N).fill(1), rowP: new Uint8Array(n), colP: new Uint8Array(n), regP: new Uint8Array(n) };
+  const place = (S, i) => {
+    const r = R(i), c = C(i), g = grid[i];
+    for (let j = 0; j < N; j++) if (R(j) === r || C(j) === c || grid[j] === g || (Math.abs(R(j) - r) <= 1 && Math.abs(C(j) - c) <= 1)) S.cand[j] = 0;
+    S.rowP[r] = 1; S.colP[c] = 1; S.regP[g] = 1;
+  };
+  marks.forEach((m, i) => { if (m === 2) place(st, i); });
+  const regCells = (g) => { const o = []; for (let i = 0; i < N; i++) if (grid[i] === g) o.push(i); return o; };
+  const rowCells = (r) => Array.from({ length: n }, (_, c) => r * n + c);
+  const colCells = (c) => Array.from({ length: n }, (_, r) => r * n + c);
+  const lineName = (kind, ids) => (kind === 'r' ? (ids.length === 1 ? `Rad ${ids[0] + 1}` : `Rad ${listText(ids.map((x) => x + 1))}`) : (ids.length === 1 ? `Kolumn ${ids[0] + 1}` : `Kolumn ${listText(ids.map((x) => x + 1))}`));
+  const lineLower = (kind, ids) => lineName(kind, ids).replace(/^R/, 'r').replace(/^K/, 'k');
+  const dead = (S) => {
+    const gc = new Array(n).fill(0), rc = new Array(n).fill(0), cc = new Array(n).fill(0);
+    for (let i = 0; i < N; i++) if (S.cand[i]) { gc[grid[i]]++; rc[R(i)]++; cc[C(i)]++; }
+    for (let x = 0; x < n; x++) {
+      if (!S.regP[x] && gc[x] === 0) return { cells: regCells(x), text: `det ${NAMES[x]} området` };
+      if (!S.rowP[x] && rc[x] === 0) return { cells: rowCells(x), text: `rad ${x + 1}` };
+      if (!S.colP[x] && cc[x] === 0) return { cells: colCells(x), text: `kolumn ${x + 1}` };
+    }
+    return null;
+  };
+  function setStep(k) {
+    const regs = [], rows = [], cols = [];
+    for (let x = 0; x < n; x++) { if (!st.regP[x]) regs.push(x); if (!st.rowP[x]) rows.push(x); if (!st.colP[x]) cols.push(x); }
+    if (regs.length <= k) return null;
+    const rm = new Array(n).fill(0), cm = new Array(n).fill(0), rr = new Array(n).fill(0), cc = new Array(n).fill(0);
+    for (let i = 0; i < N; i++) if (st.cand[i]) { const g = grid[i]; rm[g] |= 1 << R(i); cm[g] |= 1 << C(i); rr[R(i)] |= 1 << g; cc[C(i)] |= 1 << g; }
+    const bits = (m) => { const o = []; for (let x = 0; x < n; x++) if ((m >> x) & 1) o.push(x); return o; };
+    const take = (f) => { const e = []; for (let i = 0; i < N; i++) if (st.cand[i] && f(i)) e.push(i); return e; };
+    for (const S of combos(regs, k)) {
+      let rU = 0, cU = 0, sm = 0; for (const g of S) { rU |= rm[g]; cU |= cm[g]; sm |= 1 << g; }
+      const inS = (i) => (sm >> grid[i]) & 1;
+      if (pc(rU) === k) { const e = take((i) => ((rU >> R(i)) & 1) && !inS(i)); if (e.length) { const ids = bits(rU); return { elim: e, why: S.flatMap(regCells), text: k === 1 ? `${regPhrase(S)} ligger bara i ${lineLower('r', ids)}. Dess dam måste stå där, så resten av raden stryks.` : `${regPhrase(S)} ryms bara i ${lineLower('r', ids)}. Deras damer fyller de raderna, så andra områden stryks där.` }; } }
+      if (pc(cU) === k) { const e = take((i) => ((cU >> C(i)) & 1) && !inS(i)); if (e.length) { const ids = bits(cU); return { elim: e, why: S.flatMap(regCells), text: k === 1 ? `${regPhrase(S)} ligger bara i ${lineLower('c', ids)}. Dess dam måste stå där, så resten av kolumnen stryks.` : `${regPhrase(S)} ryms bara i ${lineLower('c', ids)}. Deras damer fyller de kolumnerna, så andra områden stryks där.` }; } }
+    }
+    for (const kind of ['r', 'c']) {
+      const lines = kind === 'r' ? rows : cols, map = kind === 'r' ? rr : cc;
+      for (const L of combos(lines, k)) {
+        let gU = 0, lm = 0; for (const x of L) { gU |= map[x]; lm |= 1 << x; }
+        if (pc(gU) !== k) continue;
+        const e = take((i) => ((gU >> grid[i]) & 1) && !((lm >> (kind === 'r' ? R(i) : C(i))) & 1));
+        if (!e.length) continue;
+        const gs = bits(gU);
+        return { elim: e, why: L.flatMap(kind === 'r' ? rowCells : colCells), text: `${lineName(kind, L)} kan bara ha ${k === 1 ? 'sin dam' : 'damer'} i ${regPhrase(gs).toLowerCase()}, så ${k === 1 ? 'det områdets' : 'de områdenas'} övriga rutor stryks.` };
+      }
+    }
+    return null;
+  }
+
+  for (let guard = 0; guard < 300; guard++) {
+    for (let g = 0; g < n; g++) {
+      if (st.regP[g]) continue;
+      const c = regCells(g).filter((i) => st.cand[i]);
+      if (c.length === 1) return { kind: 'place', cells: [c[0]], why: regCells(g), text: `Det ${NAMES[g]} området har bara en ruta kvar. Placera en dam i den markerade rutan.` };
+    }
+    for (let r = 0; r < n; r++) {
+      if (st.rowP[r]) continue;
+      const c = rowCells(r).filter((i) => st.cand[i]);
+      if (c.length === 1) return { kind: 'place', cells: [c[0]], why: rowCells(r), text: `Rad ${r + 1} har bara en ruta kvar. Placera en dam i den markerade rutan.` };
+    }
+    for (let q = 0; q < n; q++) {
+      if (st.colP[q]) continue;
+      const c = colCells(q).filter((i) => st.cand[i]);
+      if (c.length === 1) return { kind: 'place', cells: [c[0]], why: colCells(q), text: `Kolumn ${q + 1} har bara en ruta kvar. Placera en dam i den markerade rutan.` };
+    }
+    let progressed = false;
+    for (const k of [1, 2, 3]) {
+      const stp = setStep(k);
+      if (!stp) continue;
+      stp.elim.forEach((i) => { st.cand[i] = 0; });
+      if (stp.elim.some((i) => marks[i] !== 1)) return { kind: 'elim', cells: stp.elim, why: stp.why, text: stp.text + ' Stryk de markerade rutorna.' };
+      progressed = true; break;
+    }
+    if (progressed) continue;
+    for (let i = 0; i < N; i++) {
+      if (!st.cand[i]) continue;
+      const S = { cand: Uint8Array.from(st.cand), rowP: st.rowP.slice(), colP: st.colP.slice(), regP: st.regP.slice() };
+      place(S, i);
+      const d = dead(S);
+      if (!d) continue;
+      st.cand[i] = 0; progressed = true;
+      if (marks[i] !== 1) return { kind: 'elim', cells: [i], why: d.cells, text: `En dam i den markerade rutan skulle lämna ${d.text} utan en enda ruta. Stryk rutan.` };
+      break;
+    }
+    if (!progressed) return null;
+  }
+  return null;
+}
+
+$('hint').onclick = () => {
+  const sol = new Set(lv.solution.map((c, r) => r * n + c));
+  let wrong = -1;
+  marks.forEach((m, i) => { if (m === 2 && !sol.has(i) && wrong < 0) wrong = i; });
+  clearHint();
+  if (wrong >= 0) { hint = { cells: new Set([wrong]), why: new Set(), kind: 'wrong', text: 'Den markerade damen står fel. Ta bort den eller flytta den.' }; paint(); return; }
+  const h = computeHint();
+  if (h) { hint = { cells: new Set(h.cells), why: new Set(h.why), kind: h.kind, text: h.text }; paint(); return; }
+  for (let r = 0; r < n; r++) {
+    const i = r * n + lv.solution[r];
+    if (marks[i] !== 2) { hint = { cells: new Set([i]), why: new Set(), kind: 'place', text: 'Här ska en dam stå. Banan går att lösa med den rutan som utgångspunkt.' }; paint(); return; }
+  }
+};
+
+function openPicker() {
+  const p = $('picker'); p.innerHTML = '';
+  [6, 7, 8, 9].forEach((size) => {
+    const list = LEVELS.filter((l) => l.n === size);
+    if (!list.length) return;
+    const sec = document.createElement('section');
+    const done = list.filter((l) => solvedMap[l.id] != null).length;
+    sec.innerHTML = `<h2>${size} x ${size} · ${done} av ${list.length} klara</h2>`;
+    const g = document.createElement('div'); g.className = 'lv';
+    list.forEach((l) => {
+      const b = document.createElement('button'); b.type = 'button'; b.textContent = l.id;
+      if (solvedMap[l.id] != null) b.classList.add('solved');
+      if (l.id === lv.id) b.classList.add('now');
+      b.onclick = () => load(LEVELS.indexOf(l));
+      g.appendChild(b);
+    });
+    sec.appendChild(g); p.appendChild(sec);
+  });
+  p.hidden = false; $('menuBtn').textContent = 'Stäng'; $('menuBtn').setAttribute('aria-expanded', 'true');
+}
+function closePicker() { $('picker').hidden = true; $('menuBtn').textContent = 'Banor'; $('menuBtn').setAttribute('aria-expanded', 'false'); }
+$('menuBtn').onclick = () => ($('picker').hidden ? openPicker() : closePicker());
+
+setInterval(() => {
+  if (finished || document.hidden || !$('picker').hidden) return;
+  if (!marks.some((m) => m)) return; // klockan startar vid första draget
+  secs++; $('timer').textContent = fmt(secs);
+}, 1000);
+
+load(idx);
+</script>
