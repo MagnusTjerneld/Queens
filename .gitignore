@@ -1,4 +1,7 @@
 node_modules/
-*.png
-!icons/*.png
 _site/
+*.png
+
+# Byggs av scripts/ (lokalt eller i Actions), checkas inte in.
+/index.html
+/sw.js

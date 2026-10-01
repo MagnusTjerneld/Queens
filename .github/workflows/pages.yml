@@ -1,5 +1,5 @@
 # Bygger och publicerar spelet på GitHub Pages vid varje push till main.
-# Allt byggs här, så inbyggda filer i repot (index.html, sw.js, ikoner) kan aldrig nå sajten i inaktuellt skick.
+# Byggda filer (index.html, sw.js, PNG-ikoner) checkas inte in utan skapas här från källan.
 name: Pages
 
 on:
