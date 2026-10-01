@@ -1,8 +1,8 @@
 // Följer Tips-knappen steg för steg på alla banor och kontrollerar att varje bana blir löst utan fel förslag.
 // Kräver playwright. Körs med: node test/hints.test.js
-const { chromium } = require('playwright');
+const launch = require('../scripts/browser');
 (async () => {
-  const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' }).catch(() => chromium.launch());
+  const b = await launch();
   const p = await b.newPage({ viewport: { width: 400, height: 700 } });
   const errs = []; p.on('pageerror', (e) => errs.push(e.message));
   await p.goto('file://' + require('path').join(__dirname, '..', 'index.html'));

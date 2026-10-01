@@ -27,10 +27,9 @@ jobs:
         with:
           node-version: 22
 
-      - name: Installera playwright och Chromium
-        run: |
-          npm install --no-save --no-package-lock playwright@1.56.1
-          npx playwright install --with-deps chromium
+      # Ingen webbläsare laddas ner: scripts/browser.js använder Chrome som redan finns på runnern.
+      - name: Installera playwright
+        run: npm install --no-save --no-package-lock playwright@1.56.1
 
       - name: Kontrollera banorna
         run: python3 scripts/verify-levels.py
