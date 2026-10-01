@@ -6,7 +6,16 @@ Regler: placera en dam per rad, kolumn och färgområde. Inga damer får röra v
 
 ## Spela
 
-Öppna `index.html` i en webbläsare. Filen är helt självbärande (banorna ligger inbäddade) och kan läggas på valfri statisk webbplats.
+Den publicerade versionen byggs och läggs ut av GitHub Actions (se Publicering). För att spela lokalt: kör `node scripts/build-page.js` och öppna sedan `index.html` i en webbläsare. Banorna ligger inbäddade i sidan.
+
+### Installera som app (PWA)
+
+Spelet är en PWA. Publicerat över https (t.ex. GitHub Pages) kan det installeras på hemskärmen och spelas helt offline:
+
+- Android/Chrome: menyn → Installera app.
+- iPhone/Safari: Dela → Lägg till på hemskärmen.
+
+En service worker förcachar sidan, ikonerna och typsnitten vid första besöket. När en ny version publiceras hämtas den i bakgrunden och används från nästa start. Service workers kräver http(s), så öppnad direkt från disk (`file://`) fungerar sidan som vanligt men utan offline-stöd och installation. Lokalt: `npx http-server .`
 
 - Tryck på en ruta för att växla mellan kryss, dam och tom.
 - Tips pekar ut nästa logiska steg. Skälet (område, rad eller kolumn) visas med horisontella ränder, rutan att agera på får vit ram, och en kort text förklarar varför.
@@ -16,22 +25,35 @@ Regler: placera en dam per rad, kolumn och färgområde. Inga damer får röra v
 
 | Sökväg | Innehåll |
 | --- | --- |
-| `index.html` | Den färdiga sidan (byggs, men checkas in så den går att köra direkt) |
+| `index.html` | Den färdiga sidan (byggs, checkas inte in) |
+| `sw.js` | Service worker för offline (byggs, checkas inte in) |
+| `manifest.webmanifest` | PWA-manifest: namn, färger, ikoner |
+| `icons/` | `icon.svg`; PNG-ikonerna renderas från den vid bygget och checkas inte in |
+| `fonts/` | Bricolage Grotesque och IBM Plex Mono, latin-delmängd (SIL Open Font License) |
 | `src/app.template.html` | Spelets gränssnitt och logik, med platshållaren `__LEVELS__` |
+| `src/sw.template.js` | Mall för `sw.js` |
 | `src/queens.js` | Generator, unikhetskontroll, reparation och logiklösare |
 | `levels.json` | De 100 banorna |
-| `scripts/build-page.js` | Bygger `index.html` av mallen och `levels.json` |
+| `scripts/build-page.js` | Bygger `index.html` av mallen och `levels.json`, och `sw.js` med en cacheversion (hash av de förcachade filerna) |
+| `scripts/build-icons.js` | Renderar PNG-ikonerna från `icons/icon.svg` (kräver playwright) |
 | `scripts/generate-levels.js` | Genererar om `levels.json` (deterministiskt, samma frön ger samma banor) |
 | `scripts/verify-levels.py` | Oberoende kontroll att varje bana har exakt en lösning |
 | `test/hints.test.js` | Följer Tips på alla banor i en headless-webbläsare (kräver playwright) |
+
+## Publicering (GitHub Pages)
+
+`.github/workflows/pages.yml` gör allt vid push till `main`: kontrollerar banorna, bygger ikoner, `index.html` och `sw.js`, kör tipstestet i Chromium och publicerar. Pull requests byggs och testas men publiceras inte. Byggda filer checkas inte in, så sajten byggs alltid från källan.
+
+Engångsinställning i repot: Settings → Pages → Source: **GitHub Actions**.
 
 ## Arbetsflöde
 
 ```
 node scripts/generate-levels.js   # valfritt, ger nya banor om fröna ändras
 python3 scripts/verify-levels.py  # kontrollera banorna
-node scripts/build-page.js        # bygg om index.html
-node test/hints.test.js           # testa tipsen
+node scripts/build-icons.js       # valfritt lokalt (kräver playwright), behövs bara för offline/installation
+node scripts/build-page.js        # bygg index.html och sw.js (görs även i Actions)
+node test/hints.test.js           # testa tipsen (kräver playwright och en byggd index.html)
 ```
 
 ## Hur banorna genereras
@@ -44,4 +66,5 @@ node test/hints.test.js           # testa tipsen
 ## Kända begränsningar
 
 - Nästan alla banor hamnar på mellannivå. Svårighetsökningen kommer mest av storleken.
+- Sparat framsteg (localStorage) är knutet till adressen. På iPhone får en hemskärmsapp egen lagring, så framsteg från Safari-fliken följer inte med in i den installerade appen.
 - Brädet ritas på en canvas i hela skärmpixlar för jämna linjer. Det är testat i simulerade telefoner, inte på riktiga enheter.

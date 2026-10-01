@@ -36,3 +36,4 @@ for lv in levels:
     if count(n,g)!=1: errs.append('inte exakt en lösning')
     if errs: bad+=1; print(lv['id'], errs)
 print('klara:', len(levels), 'banor, fel:', bad)
+sys.exit(1 if bad else 0)
