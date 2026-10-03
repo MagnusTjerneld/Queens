@@ -49,7 +49,8 @@
   --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
 }
-html, body { height: 100%; margin: 0; }
+/* Ingen dra-för-att-uppdatera eller studs: ett svep nedåt på brädet ska inte ladda om sidan. */
+html, body { height: 100%; margin: 0; overscroll-behavior: none; }
 body {
   box-sizing: border-box; background: var(--bg); color: var(--fg);
   font: 15px/1.4 var(--display);
@@ -300,6 +301,9 @@ function fit() {
   }
 }
 window.addEventListener('resize', () => { if (lv) fit(); });
+// iOS Safari respekterar inte alltid overscroll-behavior. Touchrörelser som börjar på brädet får därför aldrig
+// scrolla eller ladda om sidan. Bara touchmove stoppas, så vanliga tryck (click) fungerar som förut.
+$('board').addEventListener('touchmove', (e) => { if (e.cancelable) e.preventDefault(); }, { passive: false });
 
 function build() {
   const b = $('board');
