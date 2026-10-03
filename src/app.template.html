@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Queens 100</title>
-<meta name="description" content="Queens-pussel med 100 banor. En dam per rad, kolumn och färgområde.">
+<title>Queens</title>
+<meta name="description" content="Queens-pussel för mobil och webbläsare. En dam per rad, kolumn och färgområde.">
 <meta name="theme-color" content="#121414">
 <!-- Förhandsvisning när länken delas. __SITE_URL__ sätts av scripts/build-page.js (miljövariabeln SITE_URL, satt i Actions). -->
 <meta property="og:type" content="website">
 <meta property="og:locale" content="sv_SE">
 <meta property="og:site_name" content="Queens">
-<meta property="og:title" content="Queens – 100 logikpussel">
+<meta property="og:title" content="Queens – logikpussel">
 <meta property="og:description" content="En dam per rad, kolumn och färgområde. Spela i mobilen eller webbläsaren, även offline.">
 <meta property="og:url" content="__SITE_URL__">
 <meta property="og:image" content="__SITE_URL__icons/og.png">
@@ -129,7 +129,6 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 .start .frame { animation: fade .3s .3s both; }
 .start .crown { transform-box: fill-box; transform-origin: center bottom; animation: crown .5s .42s cubic-bezier(.3,1.5,.5,1) both; }
 .start .word { text-align: center; font-size: 30px; font-weight: 700; letter-spacing: -0.01em; animation: rise .4s .6s both; }
-.start .word small { display: block; margin-top: 4px; font: 400 12px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
 .start .word, .start .progress { margin: 0; }
 @keyframes sq { from { transform: scale(0); } }
 @keyframes crown { from { transform: translateY(-40%) scale(.6); opacity: 0; } }
@@ -180,7 +179,7 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
       <path class="crown" d="M3 8l4.5 4 4.5-7 4.5 7L21 8l-2 10H5L3 8zm2 12h14v2H5z" fill="#e3b341" stroke="#0b0d0d" stroke-width="1" stroke-linejoin="round" paint-order="stroke"/>
     </g>
   </svg>
-  <h1 class="word">Queens<small>100 banor</small></h1>
+  <h1 class="word">Queens</h1>
   <p class="progress" id="progress"></p>
   <div class="menu">
     <button class="play" id="startPlay" type="button">Spela<small id="startLevel"></small></button>

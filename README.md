@@ -1,6 +1,6 @@
 # Queens
 
-Ett Queens-pussel för mobil och webbläsare med 100 förgenererade banor (6x6 till 9x9).
+Ett Queens-pussel för mobil och webbläsare med förgenererade banor (6x6 till 9x9).
 
 Regler: placera en dam per rad, kolumn och färgområde. Inga damer får röra varandra, inte heller diagonalt.
 
@@ -35,7 +35,7 @@ En service worker förcachar sidan, ikonerna och typsnitten vid första besöket
 | `src/app.template.html` | Spelets gränssnitt och logik, med platshållaren `__LEVELS__` |
 | `src/sw.template.js` | Mall för `sw.js` |
 | `src/queens.js` | Generator, unikhetskontroll, reparation och logiklösare |
-| `levels.json` | De 100 banorna |
+| `levels.json` | Banorna |
 | `scripts/build-page.js` | Bygger `index.html` av mallen och `levels.json` (adressen för delningsbilden från `SITE_URL`), och `sw.js` med en cacheversion (hash av de förcachade filerna) |
 | `scripts/build-icons.js` | Renderar PNG-ikonerna och delningsbilden från `icons/*.svg` (kräver playwright) |
 | `scripts/generate-levels.js` | Genererar om `levels.json` (deterministiskt, samma frön ger samma banor) |
