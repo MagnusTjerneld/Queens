@@ -23,6 +23,7 @@ En service worker förcachar sidan, ikonerna och typsnitten vid första besöket
 - Appen öppnar på en startskärm med logon (samma krona som ikonen), antal klarade banor och knapparna Spela (fortsätter på nästa bana), Välj bana och Regler.
 - Regler (även via **?** i spelet): kort förklaring med små exempelbräden. De ritas i appen med spelets egna färger och markeringar, så de följer med om utseendet ändras. Första gången man trycker Spela visas reglerna först.
 - Klarade banor och bästa tid sparas i webbläsaren (localStorage), och appen öppnas på nästa bana.
+- Liggande telefon får en egen layout: brädet till vänster, rubrik, status och knappar till höger.
 
 ## Struktur
 

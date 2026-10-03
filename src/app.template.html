@@ -103,7 +103,7 @@ h1, .clock { flex: 1 1 0; } /* lika breda kolumner: klockan står still oavsett 
 .win .go { background: var(--gold); color: #1b1a14; border: 0; border-radius: 999px; padding: 11px 20px; font-weight: 700; }
 
 .bar { display: flex; gap: 8px; margin-top: auto; padding-bottom: 6px; }
-.bar button { flex: 1; background: var(--panel); border: 1px solid #2c3131; border-radius: 12px; padding: 13px 6px; font-size: 14px; }
+.bar button { flex: 1; min-width: 0; background: var(--panel); border: 1px solid #2c3131; border-radius: 12px; padding: 13px 6px; font-size: 14px; }
 .bar button:hover:not(:disabled) { background: var(--panel-2); }
 .bar button:disabled { opacity: .35; cursor: default; }
 
@@ -170,6 +170,26 @@ h1, .clock { flex: 1 1 0; } /* lika breda kolumner: klockan står still oavsett 
 .verdict.bad { color: var(--bad); } .verdict.good { color: var(--good); }
 .rules .go { background: var(--gold); color: #1b1a14; border: 0; border-radius: 999px; padding: 13px 20px; font-weight: 700; margin: 6px 0 4px; }
 @media (prefers-reduced-motion: reduce) { .start *, .start { animation: none !important; transition: none !important; } }
+
+/* Liggande telefon: brädet fyller höjden till vänster, rubrik, status, förklaring och knappar står i en kolumn till höger.
+   Startskärmen läggs i två kolumner så att allt syns utan att scrolla. */
+@media (orientation: landscape) and (max-height: 600px) {
+  body { padding-top: max(10px, env(safe-area-inset-top)); padding-bottom: max(10px, env(safe-area-inset-bottom)); }
+  .app { width: min(100%, 1000px); display: grid; grid-template-columns: auto minmax(300px, 1fr); grid-template-rows: auto auto auto 1fr auto; column-gap: 20px; row-gap: 12px; align-items: start; }
+  .stage { grid-column: 1; grid-row: 1 / -1; width: min(calc(100dvh - max(10px, env(safe-area-inset-top)) - max(10px, env(safe-area-inset-bottom))), calc(100vw - 32px - 320px)); }
+  .app > header { grid-column: 2; grid-row: 1; gap: 8px; }
+  header .pill { padding-inline: 12px; } header .icon-btn { width: 36px; padding-inline: 0; }
+  .status { grid-column: 2; grid-row: 2; min-height: 0; flex-wrap: wrap; }
+  .explain { grid-column: 2; grid-row: 3; }
+  .bar { grid-column: 2; grid-row: 5; align-self: end; margin-top: 0; padding-bottom: 0; }
+  .bar button { padding: 11px 2px; white-space: nowrap; }
+  .start { display: grid; grid-template-columns: auto minmax(220px, 300px); justify-content: center; align-content: center; column-gap: 48px; row-gap: 10px; }
+  .start > svg { grid-column: 1; grid-row: 1; margin: 0; width: min(30vw, 40vh, 180px); justify-self: center; }
+  .start .word { grid-column: 1; grid-row: 2; }
+  .start .progress { grid-column: 1; grid-row: 3; }
+  .start .menu { grid-column: 2; grid-row: 1 / span 3; align-self: center; margin-top: 0; }
+  .start .ver { grid-column: 1 / -1; grid-row: 4; margin: 0; padding-top: 0; text-align: center; }
+}
 </style>
 </head>
 <body>
