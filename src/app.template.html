@@ -113,11 +113,14 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 .lv button.now { background: var(--gold); color: #1b1a14; font-weight: 500; }
 @media (prefers-reduced-motion: reduce) { .cell.hint::after { animation: none; } }
 /* Startskärm: logon (samma som ikonen) byggs upp, sedan Spela, Välj bana och Regler. Ligger först i body så den täcker innan skriptet körts. */
-.start { position: fixed; inset: 0; z-index: 15; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; overflow-y: auto; transition: opacity .25s ease;
+.start { position: fixed; inset: 0; z-index: 15; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 22px; overflow-y: auto; transition: opacity .25s ease;
   padding: max(24px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left)); }
 .start.out { opacity: 0; pointer-events: none; }
 .start[hidden] { display: none; }
 .start svg { width: min(46vw, 200px); height: auto; overflow: visible; flex: 0 0 auto; }
+/* Loggan och versionen tar var sin auto-marginal: innehållet centreras och versionen hamnar längst ned utan att kunna överlappa. */
+.start > svg { margin-top: auto; }
+.start .ver { margin: auto 0 0; padding-top: 12px; font: 400 11px var(--mono); letter-spacing: .06em; color: #5d6460; user-select: text; -webkit-user-select: text; }
 .start .menu { width: min(100%, 300px); display: flex; flex-direction: column; gap: 10px; margin-top: 10px; animation: rise .4s .75s both; }
 .start .menu button { border: 1px solid #2c3131; background: var(--panel); border-radius: 999px; padding: 13px 20px; font-size: 16px; font-weight: 500; }
 .start .menu button:hover { background: var(--panel-2); }
@@ -187,6 +190,7 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
     <button id="startPick" type="button">Välj bana</button>
     <button id="startRules" type="button">Regler</button>
   </div>
+  <p class="ver">__APP_VERSION__</p>
 </div>
 
 <!-- Mönster för exempelbrädena i Regler. Får inte vara display:none, då ritas inte mönstren. -->

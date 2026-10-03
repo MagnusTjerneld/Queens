@@ -37,7 +37,7 @@ En service worker förcachar sidan, ikonerna och typsnitten vid första besöket
 | `src/sw.template.js` | Mall för `sw.js` |
 | `src/queens.js` | Generator, unikhetskontroll, reparation och logiklösare |
 | `levels.json` | Banorna |
-| `scripts/build-page.js` | Bygger `index.html` av mallen och `levels.json` (adressen för delningsbilden från `SITE_URL`), och `sw.js` med en cacheversion (hash av de förcachade filerna) |
+| `scripts/build-page.js` | Bygger `index.html` av mallen och `levels.json` (adressen för delningsbilden från `SITE_URL`, versionen på startskärmen från git: datum och kort id för senaste commit), och `sw.js` med en cacheversion (hash av de förcachade filerna) |
 | `scripts/build-icons.js` | Renderar PNG-ikonerna och delningsbilden från `icons/*.svg` (kräver playwright) |
 | `scripts/generate-levels.js` | Genererar om `levels.json` (deterministiskt, samma frön ger samma banor) |
 | `scripts/verify-levels.py` | Oberoende kontroll att varje bana har exakt en lösning |
