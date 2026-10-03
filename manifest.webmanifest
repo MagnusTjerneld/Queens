@@ -1,7 +1,7 @@
 {
-  "name": "Queens 100",
+  "name": "Queens",
   "short_name": "Queens",
-  "description": "Queens-pussel med 100 banor. En dam per rad, kolumn och färgområde.",
+  "description": "Queens-pussel för mobil och webbläsare. En dam per rad, kolumn och färgområde.",
   "lang": "sv",
   "id": "./",
   "start_url": "./",

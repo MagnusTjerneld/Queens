@@ -1,6 +1,6 @@
 # Queens
 
-Ett Queens-pussel för mobil och webbläsare med 100 förgenererade banor (6x6 till 9x9).
+Ett Queens-pussel för mobil och webbläsare med förgenererade banor (6x6 till 9x9).
 
 Regler: placera en dam per rad, kolumn och färgområde. Inga damer får röra varandra, inte heller diagonalt.
 
@@ -19,6 +19,8 @@ En service worker förcachar sidan, ikonerna och typsnitten vid första besöket
 
 - Tryck på en ruta för att växla mellan kryss, dam och tom.
 - Tips pekar ut nästa logiska steg. Skälet (område, rad eller kolumn) visas med horisontella ränder, rutan att agera på får vit ram, och en kort text förklarar varför.
+- Appen öppnar på en startskärm med logon (samma krona som ikonen), antal klarade banor och knapparna Spela (fortsätter på nästa bana), Välj bana och Regler.
+- Regler (även via **?** i spelet): kort förklaring med små exempelbräden. De ritas i appen med spelets egna färger och markeringar, så de följer med om utseendet ändras. Första gången man trycker Spela visas reglerna först.
 - Klarade banor och bästa tid sparas i webbläsaren (localStorage), och appen öppnas på nästa bana.
 
 ## Struktur
@@ -28,14 +30,14 @@ En service worker förcachar sidan, ikonerna och typsnitten vid första besöket
 | `index.html` | Den färdiga sidan (byggs, checkas inte in) |
 | `sw.js` | Service worker för offline (byggs, checkas inte in) |
 | `manifest.webmanifest` | PWA-manifest: namn, färger, ikoner |
-| `icons/` | `icon.svg`; PNG-ikonerna renderas från den vid bygget och checkas inte in |
+| `icons/` | `icon.svg` (appikon) och `og.svg` (delningsbild 1200 x 630); PNG-filerna renderas från dem vid bygget och checkas inte in |
 | `fonts/` | Bricolage Grotesque och IBM Plex Mono, latin-delmängd (SIL Open Font License) |
 | `src/app.template.html` | Spelets gränssnitt och logik, med platshållaren `__LEVELS__` |
 | `src/sw.template.js` | Mall för `sw.js` |
 | `src/queens.js` | Generator, unikhetskontroll, reparation och logiklösare |
-| `levels.json` | De 100 banorna |
-| `scripts/build-page.js` | Bygger `index.html` av mallen och `levels.json`, och `sw.js` med en cacheversion (hash av de förcachade filerna) |
-| `scripts/build-icons.js` | Renderar PNG-ikonerna från `icons/icon.svg` (kräver playwright) |
+| `levels.json` | Banorna |
+| `scripts/build-page.js` | Bygger `index.html` av mallen och `levels.json` (adressen för delningsbilden från `SITE_URL`), och `sw.js` med en cacheversion (hash av de förcachade filerna) |
+| `scripts/build-icons.js` | Renderar PNG-ikonerna och delningsbilden från `icons/*.svg` (kräver playwright) |
 | `scripts/generate-levels.js` | Genererar om `levels.json` (deterministiskt, samma frön ger samma banor) |
 | `scripts/verify-levels.py` | Oberoende kontroll att varje bana har exakt en lösning |
 | `test/hints.test.js` | Följer Tips på alla banor i en headless-webbläsare (kräver playwright) |
@@ -45,6 +47,8 @@ En service worker förcachar sidan, ikonerna och typsnitten vid första besöket
 `.github/workflows/pages.yml` gör allt vid push till `main`: kontrollerar banorna, bygger ikoner, `index.html` och `sw.js`, kör tipstestet i Chromium och publicerar. Pull requests byggs och testas men publiceras inte. Byggda filer checkas inte in, så sajten byggs alltid från källan.
 
 Engångsinställning i repot: Settings → Pages → Source: **GitHub Actions**.
+
+Delningsbilden (`og:image`) måste vara en fullständig adress. Bygget använder `https://<ägare>.github.io/<repo>/`; vid egen domän, sätt repo-variabeln `SITE_URL` (Settings → Secrets and variables → Actions → Variables).
 
 ## Arbetsflöde
 
