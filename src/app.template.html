@@ -69,7 +69,7 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 .timer { font: 500 22px var(--mono); font-variant-numeric: tabular-nums; }
 
 .stage { position: relative; width: 100%; }
-.board { position: relative; width: max-content; margin-inline: 0; line-height: 0; border-radius: 6px; overflow: hidden; }
+.board { position: relative; width: max-content; margin-inline: 0; line-height: 0; border-radius: 6px; overflow: hidden; touch-action: none; }
 .board canvas { display: block; image-rendering: pixelated; }
 .cells { position: absolute; inset: 0; display: grid; padding: var(--lp, 4px); gap: 0; }
 .cell {
@@ -362,7 +362,53 @@ function setMarks(next) {
   undoSt.push(marks.slice()); redoSt = []; marks = next; clearHint(); paint();
 }
 
+// Dra över brädet för att kryssa alla rutor fingret passerar, åt vilket håll som helst. Damer lämnas orörda.
+// Börjar dragningen på ett kryss suddas kryss i stället. Hela dragningen blir ett steg i Ångra.
+// Rör sig fingret inte från startrutan räknas det som ett vanligt tryck (click nedan).
+let drag = null, skipClick = false;
+function cellAt(x, y) {
+  const r = $('cells').getBoundingClientRect(), pad = parseFloat(getComputedStyle($('cells')).paddingLeft) || 0;
+  const size = (r.width - 2 * pad) / n, c = Math.floor((x - r.left - pad) / size), row = Math.floor((y - r.top - pad) / size);
+  return c >= 0 && c < n && row >= 0 && row < n ? row * n + c : -1;
+}
+function dragMark(i) {
+  if (i < 0) return;
+  if (drag.erase ? marks[i] === 1 : marks[i] === 0) { marks[i] = drag.erase ? 0 : 1; drag.changed = true; }
+}
+$('board').addEventListener('pointerdown', (e) => {
+  if (finished || (e.pointerType === 'mouse' && e.button !== 0)) return;
+  const i = cellAt(e.clientX, e.clientY); if (i < 0) return;
+  drag = { id: e.pointerId, start: i, x: e.clientX, y: e.clientY, active: false, erase: marks[i] === 1, base: marks.slice(), changed: false };
+});
+$('board').addEventListener('pointermove', (e) => {
+  if (!drag || e.pointerId !== drag.id) return;
+  const to = cellAt(e.clientX, e.clientY);
+  if (!drag.active) {
+    if (to === drag.start || to < 0) return;
+    drag.active = true; clearHint();
+    $('board').setPointerCapture(e.pointerId);
+    dragMark(drag.start);
+  }
+  // Följ fingrets väg i små steg, så att ett snabbt svep inte hoppar över rutor.
+  const cellPx = $('cells').getBoundingClientRect().width / n, dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+  const steps = Math.max(1, Math.ceil(Math.hypot(dx, dy) / (cellPx / 4)));
+  for (let k = 1; k <= steps; k++) dragMark(cellAt(drag.x + (dx * k) / steps, drag.y + (dy * k) / steps));
+  drag.x = e.clientX; drag.y = e.clientY;
+  paint();
+});
+function endDrag(e) {
+  if (!drag || e.pointerId !== drag.id) return;
+  if (drag.active) {
+    skipClick = true; setTimeout(() => { skipClick = false; }, 0);
+    if (drag.changed) { undoSt.push(drag.base); redoSt = []; paint(); }
+  }
+  drag = null;
+}
+$('board').addEventListener('pointerup', endDrag);
+$('board').addEventListener('pointercancel', endDrag);
+
 $('board').addEventListener('click', (e) => {
+  if (skipClick) { skipClick = false; return; }
   const el = e.target.closest('.cell'); if (!el || finished) return;
   const i = +el.dataset.i, next = marks.slice();
   next[i] = (next[i] + 1) % 3;
@@ -557,7 +603,7 @@ function rulesHtml() {
       B({ q: [at(1, 0), at(2, 2)], bad: [at(1, 0), at(2, 2)], label: 'Två damer i samma område' }), bad),
     card('04', 'Damer får inte röra varandra', 'Inte heller snett. De åtta rutorna runt en dam ska alltid vara tomma.',
       B({ q: [at(3, 2), at(4, 3)], bad: [at(3, 2), at(4, 3)], label: 'Två damer som rör varandra diagonalt' }), bad),
-    `<section class="rule col"><div><h3><span class="n">05</span>Så markerar du</h3><p>Tryck på en ruta för att växla mellan kryss, dam och tom.</p></div>
+    `<section class="rule col"><div><h3><span class="n">05</span>Så markerar du</h3><p>Tryck på en ruta för att växla mellan kryss, dam och tom. Dra fingret över flera rutor för att kryssa dem på en gång, åt vilket håll som helst. Börjar du dra på ett kryss suddas kryssen i stället.</p></div>
       <div class="taps"><div>${one({ x: [0] })}1 tryck<br>kryss</div><div>${one({ q: [0] })}2 tryck<br>dam</div><div>${one({})}3 tryck<br>tom</div></div></section>`,
     card('06', 'Kryssa det som inte går', 'Sätt kryss där en dam inte kan stå. Varje dam stänger sin rad, kolumn, sitt område och rutorna runt sig.',
       B({ q: [q0], x: blocked, label: 'En dam och alla rutor den stänger, kryssade' })),
