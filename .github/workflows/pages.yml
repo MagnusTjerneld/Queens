@@ -34,7 +34,11 @@ jobs:
       - name: Kontrollera banorna
         run: python3 scripts/verify-levels.py
 
+      # SITE_URL behövs för delningsbilden (og:image måste vara en fullständig adress).
+      # Standard är GitHub Pages-adressen; sätt repo-variabeln SITE_URL vid egen domän.
       - name: Bygg ikoner, sida och service worker
+        env:
+          SITE_URL: ${{ vars.SITE_URL || format('https://{0}.github.io/{1}/', github.repository_owner, github.event.repository.name) }}
         run: |
           node scripts/build-icons.js
           node scripts/build-page.js

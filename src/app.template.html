@@ -6,6 +6,18 @@
 <title>Queens 100</title>
 <meta name="description" content="Queens-pussel med 100 banor. En dam per rad, kolumn och färgområde.">
 <meta name="theme-color" content="#121414">
+<!-- Förhandsvisning när länken delas. __SITE_URL__ sätts av scripts/build-page.js (miljövariabeln SITE_URL, satt i Actions). -->
+<meta property="og:type" content="website">
+<meta property="og:locale" content="sv_SE">
+<meta property="og:site_name" content="Queens">
+<meta property="og:title" content="Queens – 100 logikpussel">
+<meta property="og:description" content="En dam per rad, kolumn och färgområde. Spela i mobilen eller webbläsaren, även offline.">
+<meta property="og:url" content="__SITE_URL__">
+<meta property="og:image" content="__SITE_URL__icons/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Queens-loggan: en guldkrona på ett bräde med fyra färgade rutor.">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -99,16 +111,26 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 .lv button.solved { color: var(--good); border-color: #2f4a36; }
 .lv button.now { background: var(--gold); color: #1b1a14; font-weight: 500; }
 @media (prefers-reduced-motion: reduce) { .cell.hint::after { animation: none; } }
-/* Splash: logon (samma som ikonen) byggs upp och tonas ut. Ligger först i body så den täcker innan skriptet körts. */
-.splash { position: fixed; inset: 0; z-index: 50; background: var(--bg); display: grid; place-content: center; justify-items: center; gap: 22px; transition: opacity .35s ease; }
-.splash.out { opacity: 0; pointer-events: none; }
-.splash svg { width: min(46vw, 200px); height: auto; overflow: visible; }
-.splash .sq { transform-box: fill-box; transform-origin: center; animation: sq .42s cubic-bezier(.2,.9,.3,1.3) both; }
-.splash .sq:nth-of-type(2) { animation-delay: .07s; } .splash .sq:nth-of-type(3) { animation-delay: .14s; } .splash .sq:nth-of-type(4) { animation-delay: .21s; }
-.splash .frame { animation: fade .3s .3s both; }
-.splash .crown { transform-box: fill-box; transform-origin: center bottom; animation: crown .5s .42s cubic-bezier(.3,1.5,.5,1) both; }
-.splash .word { text-align: center; font-size: 30px; font-weight: 700; letter-spacing: -0.01em; animation: rise .4s .6s both; }
-.splash .word small { display: block; margin-top: 4px; font: 400 12px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+/* Startskärm: logon (samma som ikonen) byggs upp, sedan Spela, Välj bana och Regler. Ligger först i body så den täcker innan skriptet körts. */
+.start { position: fixed; inset: 0; z-index: 15; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; overflow-y: auto; transition: opacity .25s ease;
+  padding: max(24px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left)); }
+.start.out { opacity: 0; pointer-events: none; }
+.start[hidden] { display: none; }
+.start svg { width: min(46vw, 200px); height: auto; overflow: visible; flex: 0 0 auto; }
+.start .menu { width: min(100%, 300px); display: flex; flex-direction: column; gap: 10px; margin-top: 10px; animation: rise .4s .75s both; }
+.start .menu button { border: 1px solid #2c3131; background: var(--panel); border-radius: 999px; padding: 13px 20px; font-size: 16px; font-weight: 500; }
+.start .menu button:hover { background: var(--panel-2); }
+.start .menu .play { background: var(--gold); border-color: var(--gold); color: #1b1a14; font-weight: 700; font-size: 18px; padding: 15px 20px; }
+.start .menu .play:hover { background: #ecc25a; }
+.start .menu .play small { display: block; font: 500 12px var(--mono); letter-spacing: .06em; text-transform: uppercase; opacity: .7; margin-top: 2px; }
+.start .progress { font: 400 12px var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); text-align: center; animation: rise .4s .7s both; }
+.start .sq { transform-box: fill-box; transform-origin: center; animation: sq .42s cubic-bezier(.2,.9,.3,1.3) both; }
+.start .sq:nth-of-type(2) { animation-delay: .07s; } .start .sq:nth-of-type(3) { animation-delay: .14s; } .start .sq:nth-of-type(4) { animation-delay: .21s; }
+.start .frame { animation: fade .3s .3s both; }
+.start .crown { transform-box: fill-box; transform-origin: center bottom; animation: crown .5s .42s cubic-bezier(.3,1.5,.5,1) both; }
+.start .word { text-align: center; font-size: 30px; font-weight: 700; letter-spacing: -0.01em; animation: rise .4s .6s both; }
+.start .word small { display: block; margin-top: 4px; font: 400 12px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.start .word, .start .progress { margin: 0; }
 @keyframes sq { from { transform: scale(0); } }
 @keyframes crown { from { transform: translateY(-40%) scale(.6); opacity: 0; } }
 @keyframes rise { from { transform: translateY(8px); opacity: 0; } }
@@ -137,13 +159,13 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 .verdict { display: inline-block; margin-top: 6px; font: 500 11px var(--mono); letter-spacing: .08em; text-transform: uppercase; }
 .verdict.bad { color: var(--bad); } .verdict.good { color: var(--good); }
 .rules .go { background: var(--gold); color: #1b1a14; border: 0; border-radius: 999px; padding: 13px 20px; font-weight: 700; margin: 6px 0 4px; }
-@media (prefers-reduced-motion: reduce) { .splash *, .splash { animation: none !important; transition: none !important; } }
+@media (prefers-reduced-motion: reduce) { .start *, .start { animation: none !important; transition: none !important; } }
 </style>
 </head>
 <body>
 
-<div class="splash" id="splash" aria-hidden="true">
-  <svg viewBox="108 108 296 296">
+<div class="start" id="start" role="dialog" aria-label="Queens startskärm">
+  <svg viewBox="108 108 296 296" aria-hidden="true">
     <g transform="translate(116 116)">
       <rect class="sq" width="140" height="140" fill="#a5472f"/>
       <rect class="sq" x="140" width="140" height="140" fill="#2f6ea3"/>
@@ -158,7 +180,13 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
       <path class="crown" d="M3 8l4.5 4 4.5-7 4.5 7L21 8l-2 10H5L3 8zm2 12h14v2H5z" fill="#e3b341" stroke="#0b0d0d" stroke-width="1" stroke-linejoin="round" paint-order="stroke"/>
     </g>
   </svg>
-  <div class="word">Queens<small>100 banor</small></div>
+  <h1 class="word">Queens<small>100 banor</small></h1>
+  <p class="progress" id="progress"></p>
+  <div class="menu">
+    <button class="play" id="startPlay" type="button">Spela<small id="startLevel"></small></button>
+    <button id="startPick" type="button">Välj bana</button>
+    <button id="startRules" type="button">Regler</button>
+  </div>
 </div>
 
 <!-- Mönster för exempelbrädena i Regler. Får inte vara display:none, då ritas inte mönstren. -->
@@ -555,26 +583,28 @@ $('rulesPlay').onclick = closeRules;
 addEventListener('keydown', (e) => { if (e.key === 'Escape') closeRules(); });
 
 setInterval(() => {
-  if (finished || document.hidden || !$('picker').hidden || !$('rules').hidden) return;
+  if (finished || document.hidden || !$('picker').hidden || !$('rules').hidden || !start.hidden) return;
   if (!marks.some((m) => m)) return; // klockan startar vid första draget
   secs++; $('timer').textContent = fmt(secs);
 }, 1000);
 
 load(idx);
 
-// Splash vid start. Tryck för att hoppa över. Första gången (inget sparat) visas reglerna efteråt.
-(function splash() {
-  const el = $('splash');
-  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let gone = false;
-  const hide = () => {
-    if (gone) return; gone = true;
-    el.classList.add('out');
-    setTimeout(() => el.remove(), 360);
-    if (!store.get('queens.rulesSeen', false) && !Object.keys(solvedMap).length) openRules();
-  };
-  el.addEventListener('pointerdown', hide);
-  setTimeout(hide, still ? 500 : 1400);
+// Startskärm. Spela fortsätter på aktuell bana; första gången (inget klarat, regler aldrig visade) öppnas reglerna först.
+const start = $('start');
+function closeStart(then) {
+  start.classList.add('out'); start.setAttribute('aria-hidden', 'true');
+  setTimeout(() => { start.hidden = true; }, 260);
+  if (then) then();
+}
+(function initStart() {
+  const done = Object.keys(solvedMap).length;
+  $('progress').textContent = done ? `${done} av ${LEVELS.length} klara` : '';
+  $('startLevel').textContent = (done ? 'Fortsätt på bana ' : 'Bana ') + lv.id;
+  $('startPlay').onclick = () => closeStart(() => { if (!store.get('queens.rulesSeen', false) && !done) openRules(); });
+  $('startPick').onclick = () => closeStart(openPicker);
+  $('startRules').onclick = () => closeStart(openRules);
+  $('startPlay').focus({ preventScroll: true });
 })();
 
 // Offline-stöd. Service workers kräver http(s), så när filen öppnas direkt från disk hoppas det över.
