@@ -19,6 +19,8 @@ En service worker förcachar sidan, ikonerna och typsnitten vid första besöket
 
 - Tryck på en ruta för att växla mellan kryss, dam och tom.
 - Tips pekar ut nästa logiska steg. Skälet (område, rad eller kolumn) visas med horisontella ränder, rutan att agera på får vit ram, och en kort text förklarar varför.
+- Vid start visas en kort splash med logon (samma krona som ikonen). Tryck för att hoppa över.
+- **?** öppnar Regler: kort förklaring med små exempelbräden. De ritas i appen med spelets egna färger och markeringar, så de följer med om utseendet ändras. Reglerna visas automatiskt första gången.
 - Klarade banor och bästa tid sparas i webbläsaren (localStorage), och appen öppnas på nästa bana.
 
 ## Struktur
