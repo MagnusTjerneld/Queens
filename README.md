@@ -18,7 +18,6 @@ Spelet är en PWA. Publicerat över https (t.ex. GitHub Pages) kan det installer
 En service worker förcachar sidan, ikonerna och typsnitten vid första besöket. När en ny version publiceras hämtas den i bakgrunden och används från nästa start. Service workers kräver http(s), så öppnad direkt från disk (`file://`) fungerar sidan som vanligt men utan offline-stöd och installation. Lokalt: `npx http-server .`
 
 - Tryck på en ruta för att växla mellan kryss, dam och tom.
-- Dra över brädet för att kryssa alla rutor fingret passerar, åt vilket håll som helst. Damer lämnas orörda. Börjar dragningen på ett kryss suddas kryss i stället. En dragning är ett steg i Ångra.
 - Tips pekar ut nästa logiska steg. Skälet (område, rad eller kolumn) visas med horisontella ränder, rutan att agera på får vit ram, och en kort text förklarar varför.
 - Appen öppnar på en startskärm med logon (samma krona som ikonen), antal klarade banor och knapparna Spela (fortsätter på nästa bana), Välj bana och Regler.
 - Regler (även via **?** i spelet): kort förklaring med små exempelbräden. De ritas i appen med spelets egna färger och markeringar, så de följer med om utseendet ändras. Första gången man trycker Spela visas reglerna först.
