@@ -154,11 +154,14 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 .rule .pic.wide { width: 100%; }
 .rule h3 { margin: 0 0 4px; font-size: 16px; font-weight: 700; }
 .rule p { margin: 0; color: #c4c9c2; font-size: 14px; line-height: 1.45; }
+.rule p b { color: var(--fg); font-weight: 700; }
 .rule h3 .n { font: 500 12px var(--mono); color: var(--gold); margin-right: 6px; }
 .rule.col { flex-direction: column; align-items: stretch; }
 .mini { display: block; width: 100%; height: auto; border-radius: 4px; }
 .taps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; text-align: center; font: 400 12px var(--mono); color: var(--muted); letter-spacing: .03em; }
 .taps .mini { width: 56px; margin: 0 auto 6px; }
+.dragdemo { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; font: 400 12px var(--mono); color: var(--muted); letter-spacing: .03em; }
+.dragdemo .mini { width: 190px; flex: 0 0 auto; }
 .verdict { display: inline-block; margin-top: 6px; font: 500 11px var(--mono); letter-spacing: .08em; text-transform: uppercase; }
 .verdict.bad { color: var(--bad); } .verdict.good { color: var(--good); }
 .rules .go { background: var(--gold); color: #1b1a14; border: 0; border-radius: 999px; padding: 13px 20px; font-weight: 700; margin: 6px 0 4px; }
@@ -565,25 +568,36 @@ $('menuBtn').onclick = () => ($('picker').hidden ? openPicker() : closePicker())
 // Regler. Exemplen ritas som små SVG-bräden med samma färger och markeringar som spelet, i stället för skärmbilder.
 // o: { n, grid, q: damer, x: kryss, bad: krockar, why: skälet (ränder), hint: ruta att agera på, done: guldkronor }
 function mini(o) {
-  const n = o.n, s = 24, f = 2, W = n * s + 2 * f, at = (k) => f + k * s, has = (a, i) => (a || []).includes(i);
+  // rows/cols ger icke-kvadratiska exempel (t.ex. en rad); annars n x n. drag ritar fingrets väg genom alla rutor.
+  const R = o.rows || o.n, C = o.cols || o.n, N = R * C, s = 24, f = 2, W = C * s + 2 * f, H = R * s + 2 * f;
+  const at = (k) => f + k * s, has = (a, i) => (a || []).includes(i);
   const g = o.grid, wOf = (a, b) => (g[a] !== g[b] ? 2 : 0.75);
-  let h = `<svg class="mini" viewBox="0 0 ${W} ${W}" role="img" aria-label="${o.label || ''}"><rect width="${W}" height="${W}" style="fill:var(--line)"/>`;
-  for (let i = 0; i < n * n; i++) h += `<rect x="${at(i % n)}" y="${at((i / n) | 0)}" width="${s}" height="${s}" style="fill:var(--r${g[i]})"/>`;
+  let h = `<svg class="mini" viewBox="0 0 ${W} ${H}" role="img" aria-label="${o.label || ''}"><rect width="${W}" height="${H}" style="fill:var(--line)"/>`;
+  for (let i = 0; i < N; i++) h += `<rect x="${at(i % C)}" y="${at((i / C) | 0)}" width="${s}" height="${s}" style="fill:var(--r${g[i]})"/>`;
   let ln = '';
-  for (let r = 0; r < n; r++) for (let c = 1; c < n; c++) { const w = wOf(r * n + c - 1, r * n + c); ln += `M${at(c) - w / 2} ${at(r)}h${w}v${s}h${-w}z`; }
-  for (let r = 1; r < n; r++) for (let c = 0; c < n; c++) { const w = wOf((r - 1) * n + c, r * n + c); ln += `M${at(c)} ${at(r) - w / 2}h${s}v${w}h${-s}z`; }
-  for (let r = 1; r < n; r++) for (let c = 1; c < n; c++) {
-    const m = Math.max(wOf((r - 1) * n + c - 1, r * n + c - 1), wOf((r - 1) * n + c, r * n + c), wOf((r - 1) * n + c - 1, (r - 1) * n + c), wOf(r * n + c - 1, r * n + c));
+  for (let r = 0; r < R; r++) for (let c = 1; c < C; c++) { const w = wOf(r * C + c - 1, r * C + c); ln += `M${at(c) - w / 2} ${at(r)}h${w}v${s}h${-w}z`; }
+  for (let r = 1; r < R; r++) for (let c = 0; c < C; c++) { const w = wOf((r - 1) * C + c, r * C + c); ln += `M${at(c)} ${at(r) - w / 2}h${s}v${w}h${-s}z`; }
+  for (let r = 1; r < R; r++) for (let c = 1; c < C; c++) {
+    const m = Math.max(wOf((r - 1) * C + c - 1, r * C + c - 1), wOf((r - 1) * C + c, r * C + c), wOf((r - 1) * C + c - 1, (r - 1) * C + c), wOf(r * C + c - 1, r * C + c));
     ln += `M${at(c) - m / 2} ${at(r) - m / 2}h${m}v${m}h${-m}z`;
   }
   if (ln) h += `<path d="${ln}" style="fill:var(--ink)"/>`;
-  for (let i = 0; i < n * n; i++) {
-    const x = at(i % n), y = at((i / n) | 0), bad = has(o.bad, i);
+  for (let i = 0; i < N; i++) {
+    const x = at(i % C), y = at((i / C) | 0), bad = has(o.bad, i);
     if (has(o.why, i)) h += `<rect x="${x}" y="${y}" width="${s}" height="${s}" fill="url(#p-why)"/>`;
     if (bad) h += `<rect x="${x}" y="${y}" width="${s}" height="${s}" fill="url(#p-bad)"/>`;
     if (bad || has(o.hint, i)) h += `<rect x="${x + 1}" y="${y + 1}" width="${s - 2}" height="${s - 2}" fill="none" stroke="#fff" stroke-width="2"/>`;
     if (has(o.q, i)) h += `<path d="${CROWN_D}" transform="translate(${x + s * 0.205} ${y + s * 0.205}) scale(${(s * 0.59) / 24})" fill="${bad ? '#1a0c0c' : o.done ? 'var(--gold)' : '#f6f3ea'}"/>`;
     else if (has(o.x, i)) h += `<path d="M${x + 9} ${y + 9}l6 6m0-6l-6 6" stroke="rgba(255,255,255,.6)" stroke-width="1.6" stroke-linecap="round"/>`;
+  }
+  if (o.drag) {
+    // Fingrets väg: från en prick i första rutan till en pilspets i sista, lagd lågt i rutorna så att kryssen syns.
+    const [a, z] = [o.drag[0], o.drag[o.drag.length - 1]], cx = (i) => at(i % C) + s / 2, cy = (i) => at((i / C) | 0) + s * 0.8;
+    const pts = o.drag.map((i) => `${cx(i)} ${cy(i)}`).join(' L');
+    const dx = Math.sign(cx(z) - cx(o.drag[o.drag.length - 2])), dy = Math.sign(cy(z) - cy(o.drag[o.drag.length - 2]));
+    h += `<g fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" opacity=".9">`
+      + `<path d="M${pts}"/><path d="M${cx(z) - 3.5 * dx - 3 * dy} ${cy(z) - 3.5 * dy + 3 * dx}L${cx(z)} ${cy(z)}L${cx(z) - 3.5 * dx + 3 * dy} ${cy(z) - 3.5 * dy - 3 * dx}"/></g>`
+      + `<circle cx="${cx(a)}" cy="${cy(a)}" r="2.4" fill="#fff" opacity=".9"/>`;
   }
   return h + '</svg>';
 }
@@ -611,8 +625,10 @@ function rulesHtml() {
       B({ q: [at(1, 0), at(2, 2)], bad: [at(1, 0), at(2, 2)], label: 'Två damer i samma område' }), bad),
     card('04', 'Damer får inte röra varandra', 'Inte heller snett. De åtta rutorna runt en dam ska alltid vara tomma.',
       B({ q: [at(3, 2), at(4, 3)], bad: [at(3, 2), at(4, 3)], label: 'Två damer som rör varandra diagonalt' }), bad),
-    `<section class="rule col"><div><h3><span class="n">05</span>Så markerar du</h3><p>Tryck på en ruta för att växla mellan kryss, dam och tom. Dra fingret över flera rutor för att kryssa dem på en gång, åt vilket håll som helst. Börjar du dra på ett kryss suddas kryssen i stället.</p></div>
-      <div class="taps"><div>${one({ x: [0] })}1 tryck<br>kryss</div><div>${one({ q: [0] })}2 tryck<br>dam</div><div>${one({})}3 tryck<br>tom</div></div></section>`,
+    `<section class="rule col"><div><h3><span class="n">05</span>Så markerar du</h3><p>Tryck på en ruta för att växla mellan kryss, dam och tom.</p></div>
+      <div class="taps"><div>${one({ x: [0] })}1 tryck<br>kryss</div><div>${one({ q: [0] })}2 tryck<br>dam</div><div>${one({})}3 tryck<br>tom</div></div>
+      <p><b>Håll och dra</b> fingret över flera rutor för att kryssa alla på en gång, åt vilket håll som helst. Damer lämnas orörda. Börjar du på ett kryss suddas kryssen i stället.</p>
+      <div class="dragdemo">${mini({ rows: 1, cols: 5, grid: [5, 5, 3, 3, 3], x: [0, 1, 2, 3, 4], drag: [0, 1, 2, 3, 4], label: 'Håll och dra över en rad: alla rutor kryssas' })}<span>håll och dra: kryss på alla</span></div></section>`,
     card('06', 'Kryssa det som inte går', 'Sätt kryss där en dam inte kan stå. Varje dam stänger sin rad, kolumn, sitt område och rutorna runt sig.',
       B({ q: [q0], x: blocked, label: 'En dam och alla rutor den stänger, kryssade' })),
     card('07', 'Fastnat? Tryck på Tips', 'Tips visar nästa logiska steg. Ränderna visar varför, den vita ramen visar rutan du ska ändra.',
